@@ -1,3 +1,5 @@
+import 'package:recipe_app/Features/details_screen/data/models/ingredints_model.dart';
+
 class Ingredients {
   Ingredients({
     this.text,
@@ -8,6 +10,7 @@ class Ingredients {
     this.foodCategory,
     this.foodId,
     this.image,
+    this.id,
   });
 
   Ingredients.fromJson(dynamic json) {
@@ -20,6 +23,7 @@ class Ingredients {
     foodId = json['foodId'];
     image = json['image'];
   }
+  String? id;
   String? text;
   double? quantity;
   String? measure;
@@ -59,5 +63,16 @@ class Ingredients {
     map['foodId'] = foodId;
     map['image'] = image;
     return map;
+  }
+
+  factory Ingredients.fromIngredientsModel(IngredientsModel? ingredientsModel) {
+    if (ingredientsModel == null)
+      return throw ArgumentError('Recipe cannot be null');
+    return Ingredients(
+      quantity: ingredientsModel.quantity,
+      measure: ingredientsModel.measure,
+      food: ingredientsModel.food,
+      image: ingredientsModel.image,
+    );
   }
 }

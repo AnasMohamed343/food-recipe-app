@@ -30,4 +30,15 @@ class ChocdfNet {
     map['unit'] = unit;
     return map;
   }
+
+  // // In ChocdfNet class
+  // factory ChocdfNet.fromChocdfNetModel(ChocdfNetModel? chocdfNetModel) {
+  //   if (chocdfNetModel == null)
+  //     throw ArgumentError('chocdfNetModel cannot be null');
+  //   return ChocdfNet(
+  //     label: chocdfNetModel.label,
+  //     quantity: chocdfNetModel.quantity,
+  //     unit: chocdfNetModel.unit,
+  //   );
+  // }
 }

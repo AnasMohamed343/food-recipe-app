@@ -30,4 +30,14 @@ class Fat {
     map['unit'] = unit;
     return map;
   }
+  //
+  // // In Fat class
+  // factory Fat.fromFatModel(FatModel? fatModel) {
+  //   if (fatModel == null) throw ArgumentError('fatModel cannot be null');
+  //   return Fat(
+  //     label: fatModel.label,
+  //     quantity: fatModel.quantity,
+  //     unit: fatModel.unit,
+  //   );
+  // }
 }

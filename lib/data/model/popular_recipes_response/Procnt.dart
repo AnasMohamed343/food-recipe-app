@@ -30,4 +30,14 @@ class Procnt {
     map['unit'] = unit;
     return map;
   }
+  //
+  // // In Procnt class
+  // factory Procnt.fromProcntModel(ProcntModel? procntModel) {
+  //   if (procntModel == null) throw ArgumentError('procntModel cannot be null');
+  //   return Procnt(
+  //     label: procntModel.label,
+  //     quantity: procntModel.quantity,
+  //     unit: procntModel.unit,
+  //   );
+  // }
 }

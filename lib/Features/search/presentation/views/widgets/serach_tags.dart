@@ -1,0 +1,16 @@
+List tags = [
+  'Egyptian',
+  'Palestinian',
+  'Turkish',
+  'Tunisian',
+  'Italian',
+  'Chinese',
+  'Mexican',
+  'Japanese',
+  'Spanish',
+  'French',
+  'Moroccan',
+  'Greek',
+  'British',
+  'American',
+];
