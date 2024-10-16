@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:recipe_app/Constants.dart';
+import 'package:recipe_app/Features/category_screen/presentation/views/recipes_based_on_category.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/category_tab_item.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/custom_row_title.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/popular_recipes_list_view.dart';
@@ -43,6 +44,14 @@ class CategoryTabBarWidget extends StatelessWidget {
             CustomRowTitle(
               title: 'Popular Recipes',
               padding: EdgeInsets.only(right: 24.w, left: 10.w),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const RecipesBasedOnCategory(
+                              recipe: 'Popular',
+                            )));
+              },
             ),
             SizedBox(
               height: 15.h,

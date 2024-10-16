@@ -315,4 +315,17 @@ class TotalNutrients {
     }
     return map;
   }
+  //
+  // factory TotalNutrients.fromTotalNutrientsModel(
+  //     TotalNutrientsModel? totalNutrientsModel) {
+  //   if (totalNutrientsModel == null) {
+  //     return TotalNutrients();
+  //   }
+  //   return TotalNutrients(
+  //     enerckcal: EnercKcal.fromEnercKcalModel(totalNutrientsModel.enerckcal),
+  //     fat: Fat.fromFatModel(totalNutrientsModel.fat),
+  //     cHOCDFnet: ChocdfNet.fromChocdfNetModel(totalNutrientsModel.cHOCDFnet),
+  //     procnt: Procnt.fromProcntModel(totalNutrientsModel.procnt),
+  //   );
+  // }
 }

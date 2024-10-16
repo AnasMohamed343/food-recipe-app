@@ -5,17 +5,33 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconly/iconly.dart';
 import 'package:recipe_app/Constants.dart';
+import 'package:recipe_app/Features/details_screen/presentation/views/recipe_details_screen.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/custom_calories_widget.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/custom_time_cooking_widget.dart';
+import 'package:recipe_app/core/assets.dart';
 import 'package:recipe_app/core/styles.dart';
+import 'package:recipe_app/core/utiles/reusable_functions.dart';
 import 'package:recipe_app/data/model/popular_recipes_response/Hits.dart';
+import 'package:provider/provider.dart';
+import 'package:recipe_app/data/model/popular_recipes_response/Recipe.dart';
+import 'package:http/http.dart' as http;
+import 'package:recipe_app/provider/favorite_provider.dart';
 
 class PopularRecipesCard extends StatelessWidget {
   final Hits hits;
-  const PopularRecipesCard({super.key, required this.hits});
+  final Recipe? recipe;
+  PopularRecipesCard({
+    super.key,
+    required this.hits,
+    this.recipe,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final favoriteProvider = Provider.of<FavoriteProvider>(context);
+    String formattedTime = ReusableFunctions.formatTotalTime(
+        hits.recipe?.totalTime?.toInt().toString() ?? '0');
+    //String? imageUrl = hits.recipe?.image;
     return AspectRatio(
       aspectRatio: 5 / 6,
       child: Container(
@@ -46,50 +62,54 @@ class PopularRecipesCard extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  Container(
-                    height: 128.w,
-                    width: 168.h,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      image: DecorationImage(
-                        fit: BoxFit.fill,
-                        image: NetworkImage(
-                          hits.recipe?.image ??
-                              'https://via.placeholder.com/150',
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipeDetailsScreen(
+                            hits: hits,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      height: 128.w,
+                      width: 168.h,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        image: DecorationImage(
+                          fit: BoxFit.fill,
+                          image: NetworkImage(
+                            hits.recipe?.image ??
+                                'https://via.placeholder.com/150',
+                          ),
                         ),
                       ),
+                      //child: _buildImage(imageUrl), // Use _buildImage here
                     ),
                   ),
                   Positioned(
                     top: 3,
                     right: 3,
-                    // child: ElevatedButton(
-                    //   onPressed: () {},
-                    //   child: Icon(
-                    //     IconlyLight.heart,
-                    //     color: Colors.black,
-                    //     size: 28.sp,
-                    //   ),
-                    //   style: ElevatedButton.styleFrom(
-                    //     fixedSize: const Size(3, 2),
-                    //     backgroundColor: Colors.white,
-                    //     shape: const CircleBorder(),
-                    //     padding: EdgeInsets.zero,
-                    //   ),
-                    // ),
-                    child: CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 14.6.r,
-                      child: IconButton(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(
-                            0), //to solve the icon didn't go to the center of the circle
-                        onPressed: () {},
-                        icon: const Icon(
-                          IconlyLight.heart,
-                          color: Colors.black,
-                          size: 22,
-                        ),
+                    child: InkWell(
+                      onTap: () {
+                        favoriteProvider.toggleFavorite(hits);
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 14.6.r,
+                        child: favoriteProvider.isExist(hits)
+                            ? SvgPicture.asset(
+                                Assets.selectedHeartIcon,
+                                height: 22,
+                                width: 22,
+                              )
+                            : SvgPicture.asset(
+                                Assets.heartIcon,
+                                height: 22,
+                                width: 22,
+                              ),
                       ),
                     ),
                   ),
@@ -125,18 +145,19 @@ class PopularRecipesCard extends StatelessWidget {
                         '${(hits.recipe?.calories ?? 0).toInt() > 999 ? (hits.recipe?.calories ?? 0).toInt().toString().substring(0, 3) : (hits.recipe?.calories ?? 0).toInt().toString()} Cal',
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    padding: EdgeInsets.symmetric(horizontal: 6.w),
                     child: SvgPicture.asset(
-                      width: 6.w,
-                      height: 6.h,
+                      width: 4.w,
+                      height: 4.h,
                       'assets/images/Separator.svg',
                       fit: BoxFit.fill,
                     ),
                   ),
                   CustomTimeCookingWidget(
                     color: kNeutralGrey,
-                    text:
-                        '${(hits.recipe?.totalTime ?? 0).toInt() > 99 ? (hits.recipe?.totalTime ?? 0).toInt().toString().substring(0, 2) : (hits.recipe?.totalTime ?? 0).toInt().toString()} Min',
+                    text: formattedTime,
+                    // text: '${hits.recipe?.totalTime?.toInt().toString()} Min'
+                    //'${(hits.recipe?.totalTime ?? 0).toInt() > 99 ? (hits.recipe?.totalTime ?? 0).toInt().toString().substring(0, 2) : (hits.recipe?.totalTime ?? 0).toInt().toString()} Min',
                   ),
                 ],
               ),

@@ -4,7 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:recipe_app/Constants.dart';
 import 'package:recipe_app/Features/home/presentation/view_models/popular_recipe_vm.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/popular_recipes_card.dart';
+import 'package:recipe_app/data/model/popular_recipes_response/Hits.dart';
+import 'package:recipe_app/data/model/popular_recipes_response/Recipe.dart';
 import 'package:recipe_app/di/di.dart';
+
+import 'package:provider/provider.dart';
 
 class PopularRecipesListView extends StatefulWidget {
   final String recipe;
@@ -25,6 +29,7 @@ class _PopularRecipesListViewState extends State<PopularRecipesListView> {
 
   @override
   Widget build(BuildContext context) {
+    //final favoriteProvider = Provider.of<FavoriteProvider>(context);
     return BlocBuilder<PopularRecipeViewModel, PopularRecipeState>(
       bloc: viewModel,
       builder: (context, state) {
@@ -34,10 +39,10 @@ class _PopularRecipesListViewState extends State<PopularRecipesListView> {
                 child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(
+                const CircularProgressIndicator(
                   color: kPrimaryColor,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                 ),
                 Text(state.message),
@@ -51,7 +56,7 @@ class _PopularRecipesListViewState extends State<PopularRecipesListView> {
                   onPressed: () {
                     viewModel.getPopularRecipes(widget.recipe);
                   },
-                  child: Text('Try Again'))
+                  child: const Text('Try Again'))
             ]));
           case SuccessState():
             return SizedBox(
@@ -62,9 +67,10 @@ class _PopularRecipesListViewState extends State<PopularRecipesListView> {
                 itemCount: state.hitsList?.length,
                 itemBuilder: (context, index) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: PopularRecipesCard(
-                      hits: state.hitsList![index],
+                      hits: state.hitsList?[index] as Hits,
+                      //favorite: favoriteProvider.favorites[index],
                     ),
                   );
                 },

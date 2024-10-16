@@ -30,4 +30,15 @@ class EnercKcal {
     map['unit'] = unit;
     return map;
   }
+
+  // // In EnercKcal class
+  // factory EnercKcal.fromEnercKcalModel(EnercKcalModel? enercKcalModel) {
+  //   if (enercKcalModel == null)
+  //     throw ArgumentError('enercKcalModel cannot be null');
+  //   return EnercKcal(
+  //     label: enercKcalModel.label,
+  //     quantity: enercKcalModel.quantity,
+  //     unit: enercKcalModel.unit,
+  //   );
+  // }
 }

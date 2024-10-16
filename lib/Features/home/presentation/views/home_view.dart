@@ -4,10 +4,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:recipe_app/Constants.dart';
 import 'package:recipe_app/Features/cart_screen/presentation/views/cart_screen.dart';
 import 'package:recipe_app/Features/category_screen/presentation/views/category_screen.dart';
-import 'package:recipe_app/Features/home/presentation/views/widgets/custom_app_bar.dart';
+import 'package:recipe_app/Features/home/presentation/views/widgets/custom_home_app_bar.dart';
 import 'package:recipe_app/Features/home/presentation/views/widgets/home_view_body.dart';
 import 'package:recipe_app/Features/profile_screen/presentation/views/profile_screen.dart';
-import 'package:recipe_app/generated/assets.dart';
+import 'package:recipe_app/Features/search/presentation/views/search_screen.dart';
+import 'package:recipe_app/core/assets.dart';
+import 'package:recipe_app/core/utiles/routes_manager.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -21,19 +23,23 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
-      // appBar: const PreferredSize(
-      //   preferredSize: Size.fromHeight(50), // Replace with your desired height
-      //   child: CustomAppBar(),
-      // ),
       body: tabs[selectedIndex],
       floatingActionButton: FloatingActionButton(
         shape: const StadiumBorder(
           side: BorderSide(width: 0),
         ),
         backgroundColor: kSecondaryColor,
-        onPressed: () {},
-        child: SvgPicture.asset(Assets.iconsChefIcon, width: 25, height: 25),
+        onPressed: () {
+          Navigator.pushNamed(context, RoutesManager.cartScreenRoute);
+        },
+        child: SvgPicture.asset(
+          Assets.iconsCartIcon,
+          width: 25,
+          height: 25,
+          color: Colors.white,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -83,8 +89,8 @@ class _HomeViewState extends State<HomeView> {
                   backgroundColor: Colors.transparent,
                   icon: SvgPicture.asset(
                     selectedIndex == 2
-                        ? Assets.iconsSelectedCartIcon
-                        : Assets.iconsCartIcon,
+                        ? Assets.selectedSearchIcon
+                        : Assets.iconsSearchIcon,
                     width: 28,
                     height: 28,
                   ),
@@ -112,7 +118,7 @@ class _HomeViewState extends State<HomeView> {
   List<Widget> tabs = [
     const HomeViewBody(),
     const CategoryScreen(),
-    const CartScreen(),
+    const SearchScreen(),
     const ProfileScreen()
   ];
 }
