@@ -31,4 +31,13 @@ class MyUserDao {
     var doc = usersCollection.doc(user.id);
     await doc.set(user, SetOptions(merge: true));
   }
+
+  static Future<void> updateUserProfileImageUrl(MyUser user) async {
+    // Assuming you have a way to access your database (e.g., Firestore)
+    final userCollection = FirebaseFirestore.instance.collection('Users');
+
+    await userCollection.doc(user.id).update({
+      'profileImageUrl': user.profileImageUrl,
+    });
+  }
 }

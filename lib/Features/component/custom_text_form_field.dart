@@ -12,6 +12,7 @@ class CustomTextFormField extends StatefulWidget {
   int maxLines;
   bool isPassword;
   bool readOnly;
+  Widget? suffixIcon;
   CustomTextFormField({
     required this.hintText,
     this.keyboardType = TextInputType.text,
@@ -20,6 +21,7 @@ class CustomTextFormField extends StatefulWidget {
     this.maxLines = 1,
     this.isPassword = false,
     this.readOnly = false,
+    this.suffixIcon,
   });
 
   @override
@@ -40,7 +42,6 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextFormField(
-        //can make validation for inputs in (TextFormField) , but in (TextField) can't.
         keyboardType: widget.keyboardType,
         obscureText: widget.isPassword ? _obscureText : false,
         validator: widget.validator,
@@ -78,7 +79,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                     });
                   },
                 )
-              : null,
+              : widget.suffixIcon,
         ),
       ),
     );

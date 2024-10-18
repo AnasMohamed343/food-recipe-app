@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:recipe_app/Constants.dart';
 import 'package:recipe_app/database_manager/models/myUser.dart';
@@ -30,8 +32,7 @@ class AuthenticationProvider extends ChangeNotifier {
     );
 
     // Upload the profile image to Firebase Storage and get the URL
-    String imageUrl =
-        await uploadProfileImage(profileImage, credential.user!.uid);
+    String imageUrl = await uploadData(profileImage, credential.user!.uid);
 
     MyUser user = MyUser(
       id: credential.user!.uid,
@@ -44,91 +45,155 @@ class AuthenticationProvider extends ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
-    var credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      UserCredential credential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    firebaseAuthUser = credential.user;
+      firebaseAuthUser = credential.user;
 
-    // Fetch the user data from Firestore
-    dbUser = await MyUserDao.getUser(firebaseAuthUser!.uid);
+      if (firebaseAuthUser == null) {
+        throw FirebaseAuthException(
+          code: 'user-not-found',
+          message: 'User not found or session expired.',
+        );
+      }
 
-    notifyListeners();
+      dbUser = await MyUserDao.getUser(firebaseAuthUser!.uid);
+
+      if (dbUser == null) {
+        throw Exception('Failed to retrieve user data.');
+      }
+
+      notifyListeners();
+    } catch (e) {
+      throw e;
+    }
   }
 
   Future<void> updateProfileImage(Uint8List profileImage) async {
     if (firebaseAuthUser == null) {
-      // Handle the case where firebaseAuthUser is null
-      //You can either return early or throw an exception
       throw Exception('firebaseAuthUser is null');
-      return; // Or throw an exception
     }
     String userId = firebaseAuthUser!.uid;
 
-    // Upload the profile image to Firebase Storage and get the URL
-    String imageUrl = await uploadProfileImage(profileImage, userId);
+    // Compress the image before uploading it
+    Uint8List compressedImage = await compressImage(profileImage);
+
+    // Upload the compressed image to Firebase Storage and get the URL
+    String imageUrl = await uploadData(compressedImage, userId);
 
     // Update the user profile with the new image URL
     dbUser = await MyUserDao.getUser(userId);
     dbUser?.profileImageUrl = imageUrl;
-    await MyUserDao.updateUser(dbUser!);
+    await MyUserDao.updateUserProfileImageUrl(dbUser!);
 
     notifyListeners();
   }
 
-  Future<String> uploadProfileImage(Uint8List image, String userId) async {
-    var storageRef =
-        FirebaseStorage.instance.ref().child('profileImages').child(userId);
-    await storageRef.putData(image);
-    return await storageRef.getDownloadURL();
+  Future<Uint8List> compressImage(Uint8List image) async {
+    // Use a library like image or flutter_image_compress to compress the image
+    // For example:
+    return await FlutterImageCompress.compressWithList(
+      image,
+      quality:
+          80, // Adjust the quality to balance between file size and image quality
+    );
+  }
+
+  Future<String> uploadData(Uint8List data, String userId) async {
+    Reference reference =
+        FirebaseStorage.instance.ref('profile_images/$userId');
+    await reference.putData(
+        data,
+        SettableMetadata(
+          contentType: 'image/svg',
+          cacheControl: 'public, max-age=31536000', // Cache for 1 year
+        ));
+    return await reference.getDownloadURL();
   }
 
   Future<void> updateUserProfile({
     String? name,
     String? email,
     String? password,
-    required String currentPassword, // Add currentPassword parameter
+    required String currentPassword,
   }) async {
-    // Update user details in Firestore
-    dbUser?.name = name;
-    dbUser?.emailAddress = email;
-    await MyUserDao.updateUser(dbUser!);
-
-    // Re-authenticate the user
     try {
-      // Create a credential with the current password
+      // Ensure the user is authenticated
+      if (firebaseAuthUser == null) {
+        throw Exception('User  is not authenticated.');
+      }
+
+      // Log the current user email for debugging
+      String userEmail = firebaseAuthUser!.email!;
+      print('Current user email: $userEmail');
+
+      // Check if the current password is not empty
+      if (currentPassword.isEmpty) {
+        throw Exception('Current password cannot be empty.');
+      }
+
+      // Re-authenticate the user
       AuthCredential credential = EmailAuthProvider.credential(
-        email: firebaseAuthUser?.email ?? '',
+        email: userEmail,
         password: currentPassword,
       );
 
-      // Re-authenticate the user
-      await firebaseAuthUser?.reauthenticateWithCredential(
-          credential); // Update email and password in Firebase Authentication
-      if (email != null && email != dbUser?.emailAddress) {
-        await firebaseAuthUser?.updateEmail(email);
-      }
-      if (password != null) {
-        await firebaseAuthUser?.updatePassword(password);
-      }
-    } on FirebaseAuthException catch (e) {
-      // Handle re-authentication errors
-      print('Failed to re-authenticate: ${e.message}');
-      // You might want to display an error message to the user here
-      return; // Return early if re-authentication fails
-    }
+      await firebaseAuthUser!.reauthenticateWithCredential(credential);
 
-    notifyListeners();
+      // Update the name directly without re-authentication
+      if (name != null) {
+        dbUser?.name = name;
+        await MyUserDao.updateUser(dbUser!); // Update the user in the database
+      }
+
+      // Update email if provided
+      if (email != null && email != dbUser?.emailAddress) {
+        await firebaseAuthUser!.updateEmail(email);
+        dbUser?.emailAddress = email; // Update local user data
+      }
+
+      // Update password if provided
+      if (password != null && password.isNotEmpty) {
+        await firebaseAuthUser!.updatePassword(password);
+      }
+
+      notifyListeners(); // Notify listeners of changes
+    } on FirebaseAuthException catch (e) {
+      print('Update Profile Error: ${e.code} - ${e.message}');
+      throw Exception('Failed to update profile: ${e.message}');
+    } catch (e) {
+      print('An unexpected error occurred: $e');
+      throw Exception('Failed to update profile: $e');
+    }
   }
 
+  // using shared preferences
+  // Future<void> loadUser() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? userId = prefs.getString(kUserLoggedInId);
+  //   if (userId != null) {
+  //     dbUser = await MyUserDao.getUser(userId);
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser != null) {
+  //       dbUser = await MyUserDao.getUser(currentUser.uid);
+  //       firebaseAuthUser = currentUser;
+  //     }
+  //     notifyListeners(); // Notify listeners to update the UI
+  //   }
+  // }
+
+  // using FlutterSecureStorage
+// Load user from secure storage
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   Future<void> loadUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString(kUserLoggedInId);
+    String? userId = await _secureStorage.read(key: kUserLoggedInId);
     if (userId != null) {
       dbUser = await MyUserDao.getUser(userId);
-      // firebaseAuthUser =
-      //     FirebaseAuth.instance.currentUser; // Set the firebaseAuthUser
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         dbUser = await MyUserDao.getUser(currentUser.uid);
@@ -136,5 +201,18 @@ class AuthenticationProvider extends ChangeNotifier {
       }
       notifyListeners(); // Notify listeners to update the UI
     }
+  }
+
+  // Save user ID and remember me status
+  Future<void> keepUserLoggedIn(String userId, bool keepMeLoggedIn) async {
+    await _secureStorage.write(key: kUserLoggedInId, value: userId);
+    await _secureStorage.write(
+        key: kKeepMeLoggedIn, value: keepMeLoggedIn.toString());
+  }
+
+  // To check if the user is remembered
+  Future<bool> isUserRemembered() async {
+    String? value = await _secureStorage.read(key: kKeepMeLoggedIn);
+    return value == 'true';
   }
 }

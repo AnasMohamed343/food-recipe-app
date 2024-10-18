@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconly/iconly.dart';
 import 'package:image_picker/image_picker.dart';
@@ -210,6 +211,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> signOut(context) async {
     await FirebaseAuth.instance.signOut();
+    // delete the Flutter Secure Storage stored token for this user
+    final storage = FlutterSecureStorage();
+    await storage.delete(key: kUserLoggedInId);
+    await storage.delete(key: kKeepMeLoggedIn);
     Navigator.pushReplacementNamed(context, RoutesManager.splashScreenRoute);
   }
 

@@ -13,7 +13,6 @@ class PopularRecipeViewModel extends Cubit<PopularRecipeState> {
   void getPopularRecipes(String query) async {
     try {
       var response = await popularRecipeRepository.getPopularRecipes(query);
-      // Log the response
       print('API Response: $response');
       emit(SuccessState(hitsList: response));
     } catch (e) {

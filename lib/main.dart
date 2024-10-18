@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recipe_app/Constants.dart';
 import 'package:recipe_app/Features/auth/login/Login.dart';
@@ -25,11 +26,13 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   // Initialize Hive
-  await Hive.initFlutter();
+  //await Hive.initFlutter();
 
   configureDependencies();
 
@@ -38,16 +41,22 @@ void main() async {
       create: (context) => AuthenticationProvider(),
     ),
     ChangeNotifierProxyProvider<AuthenticationProvider, CartModel>(
-      create: (context) => CartModel(''), // Provide a temporary userId
+      create: (context) => CartModel(''),
       update: (context, authProvider, previousCartModel) =>
-          CartModel(authProvider.userId!),
+          CartModel(authProvider.userId ?? ''),
     ),
     // Use a Builder to access the context safely
     ChangeNotifierProxyProvider<AuthenticationProvider, FavoriteProvider>(
-      create: (context) =>
-          FavoriteProvider(''), // Initial value, will be updated
+      create: (context) {
+        final authProvider =
+            Provider.of<AuthenticationProvider>(context, listen: false);
+        if (authProvider.userId == null || authProvider.userId!.isEmpty) {
+          return FavoriteProvider(''); // or handle it another way
+        }
+        return FavoriteProvider(authProvider.userId!);
+      },
       update: (context, authProvider, previous) => FavoriteProvider(
-        authProvider.userId!,
+        authProvider.userId ?? '',
       ),
     ),
   ], child: RecipeApp()));
@@ -55,11 +64,15 @@ void main() async {
 
 class RecipeApp extends StatelessWidget {
   RecipeApp({super.key});
-  bool isUserLoggedIn = false;
+
+  // final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  // bool isUserLoggedIn = false;
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SharedPreferences>(
-      future: SharedPreferences.getInstance(),
+    return FutureBuilder<bool>(
+      future: Provider.of<AuthenticationProvider>(context, listen: false)
+          .isUserRemembered(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const MaterialApp(
@@ -68,7 +81,7 @@ class RecipeApp extends StatelessWidget {
             ),
           );
         } else {
-          isUserLoggedIn = snapshot.data?.getBool(kKeepMeLoggedIn) ?? false;
+          bool isUserLoggedIn = snapshot.data ?? false;
           return ScreenUtilInit(
             designSize: const Size(412, 867),
             minTextAdapt: true,
@@ -102,5 +115,58 @@ class RecipeApp extends StatelessWidget {
         }
       },
     );
+    // return FutureBuilder(
+    //   future: secureStorage.read(key: kKeepMeLoggedIn),
+    //   builder: (context, snapshot) {
+    //     // Debugging print
+    //     print("Snapshot state: ${snapshot.connectionState}");
+    //
+    //     if (snapshot.connectionState == ConnectionState.waiting) {
+    //       return const MaterialApp(
+    //         home: Scaffold(
+    //           body: Center(child: CircularProgressIndicator()),
+    //         ),
+    //       );
+    //     } else if (snapshot.hasError) {
+    //       return const MaterialApp(
+    //         home: Scaffold(
+    //           body: Center(child: Text("Error reading secure storage")),
+    //         ),
+    //       );
+    //     } else {
+    //       bool isUserLoggedIn =
+    //           snapshot.data == 'true'; // Compare the value to 'true'
+    //       return ScreenUtilInit(
+    //         designSize: const Size(412, 867),
+    //         minTextAdapt: true,
+    //         splitScreenMode: true,
+    //         child: MaterialApp(
+    //           debugShowCheckedModeBanner: false,
+    //           routes: {
+    //             RoutesManager.homeScreenRoute: (context) => const HomeView(),
+    //             RoutesManager.searchScreenRoute: (context) =>
+    //                 const SearchScreen(),
+    //             RoutesManager.cartScreenRoute: (context) => const CartScreen(),
+    //             RoutesManager.categoryScreenRoute: (context) =>
+    //                 const CategoryScreen(),
+    //             RoutesManager.splashScreenRoute: (context) =>
+    //                 const SplashScreen(),
+    //             RoutesManager.signupScreenRoute: (context) => const Signup(),
+    //             RoutesManager.loginScreenRoute: (context) => const Login(),
+    //             RoutesManager.favoriteScreenRoute: (context) =>
+    //                 const FavoriteScreen(),
+    //             RoutesManager.profileScreenRoute: (context) =>
+    //                 const ProfileScreen(),
+    //             RoutesManager.updateProfileScreenRoute: (context) =>
+    //                 const UpdateProfileDetails(),
+    //           },
+    //           initialRoute: isUserLoggedIn
+    //               ? RoutesManager.homeScreenRoute
+    //               : RoutesManager.splashScreenRoute,
+    //         ),
+    //       );
+    //     }
+    //   },
+    // );
   }
 }
