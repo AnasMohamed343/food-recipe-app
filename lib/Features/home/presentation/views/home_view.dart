@@ -68,8 +68,8 @@ class _HomeViewState extends State<HomeView> {
                     selectedIndex == 0
                         ? Assets.iconsSelectedHomeIcon
                         : Assets.iconsHomeIcon,
-                    width: 28, //selectedIndex == 0 ? 38 : 28,
-                    height: 28, //selectedIndex == 0 ? 28.3 : 28,
+                    width: 28,
+                    height: 28,
                     //color: selectedIndex == 0 ? kPrimaryColor : kNeutralGrey,
                   ),
                   label: '',
@@ -102,8 +102,8 @@ class _HomeViewState extends State<HomeView> {
                     selectedIndex == 3
                         ? Assets.iconsSelectedProfileIcon
                         : Assets.iconsProfileIcon,
-                    width: 28, //selectedIndex == 3 ? 43 : 28,
-                    height: 28, //selectedIndex == 3 ? 28.5 : 28,
+                    width: 28,
+                    height: 28,
                   ),
                   label: '',
                 ),

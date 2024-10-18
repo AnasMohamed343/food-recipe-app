@@ -13,7 +13,9 @@ class FavoriteProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   FavoriteProvider(this.userId) {
-    print('userId now is >>>: $userId');
+    if (userId.isEmpty) {
+      throw Exception('User  ID cannot be empty');
+    }
     _loadFavorites();
   }
 
@@ -44,14 +46,17 @@ class FavoriteProvider extends ChangeNotifier {
         .doc(hits.recipe!.label);
 
     if (isExist(hits)) {
-      await docRef.delete();
+      _favorites.removeWhere((f) => f.recipe?.label == hits.recipe?.label);
+      notifyListeners(); // Update UI immediately
+      await docRef.delete(); // Delete from Firestore
     } else {
-      await docRef.set(favoriteHitsModel.toFirestore());
+      _favorites.add(favoriteHitsModel);
+      notifyListeners(); // Update UI immediately
+      await docRef.set(favoriteHitsModel.toFirestore()); // Add to Firestore
     }
-    _loadFavorites();
   }
 
   bool isExist(Hits hits) {
-    return _favorites.any((f) => f.recipe!.label == hits.recipe!.label);
+    return _favorites.any((f) => f.recipe?.label == hits.recipe?.label);
   }
 }

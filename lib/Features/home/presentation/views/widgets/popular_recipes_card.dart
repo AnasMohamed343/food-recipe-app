@@ -40,17 +40,17 @@ class PopularRecipesCard extends StatelessWidget {
         width: 200.w,
         height: 240.h,
         decoration: BoxDecoration(
-          color: Colors.white, // Background color of the container
+          color: Colors.white,
           border: Border.all(
-            color: Colors.grey.withOpacity(0.09), // Border color
-            width: 1.0, // Border width
+            color: Colors.grey.withOpacity(0.09),
+            width: 1.0,
           ),
-          borderRadius: BorderRadius.circular(16), // Rounded corners
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26.withOpacity(0.07), // Shadow color
-              blurRadius: 12, // Shadow blur radius
-              offset: const Offset(0, 2), // Shadow offset
+              color: Colors.black26.withOpacity(0.07),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -86,7 +86,6 @@ class PopularRecipesCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      //child: _buildImage(imageUrl), // Use _buildImage here
                     ),
                   ),
                   Positioned(

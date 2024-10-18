@@ -20,6 +20,7 @@ import 'package:recipe_app/core/utiles/routes_manager.dart';
 import 'package:recipe_app/provider/authentication_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -34,7 +35,7 @@ class _LoginState extends State<Login> {
 
   TextEditingController passwordController =
       TextEditingController(); //text: '123456'
-  final formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKey1 = GlobalKey<FormState>();
   bool keepMeLoggedIn = false;
   Uint8List? _image;
 
@@ -50,7 +51,7 @@ class _LoginState extends State<Login> {
             left: 35,
           ),
           child: Form(
-            key: formKey,
+            key: formKey1,
             child: SingleChildScrollView(
               padding: EdgeInsets.zero,
               child: Column(
@@ -58,7 +59,7 @@ class _LoginState extends State<Login> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(
-                    height: 75.h,
+                    height: 85.h,
                   ),
                   const Text(
                     "Hello,",
@@ -104,8 +105,7 @@ class _LoginState extends State<Login> {
                           ],
                         );
                       } else {
-                        return const SizedBox
-                            .shrink(); // Or anyother widget you want to show when profileImageUrl is null
+                        return const SizedBox.shrink();
                       }
                     },
                   ),
@@ -131,32 +131,34 @@ class _LoginState extends State<Login> {
                       return null;
                     },
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Theme(
-                        data: ThemeData(
-                            unselectedWidgetColor:
-                                kNeutralGrey), //checkbox border color
-                        child: Checkbox(
+                  Align(
+                    heightFactor: 0.6,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Checkbox(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          //shape: const CircleBorder(),
                           activeColor: kPrimaryColor,
                           checkColor: Colors.white,
                           value: keepMeLoggedIn,
                           onChanged: (value) {
                             setState(() {
-                              keepMeLoggedIn = value!;
+                              keepMeLoggedIn = value ?? false;
                             });
                           },
                         ),
-                      ),
-                      Text(
-                        'Remember me',
-                        style: Styles.textStyle16.copyWith(
-                            fontWeight: FontWeight.normal,
-                            color: kSecondaryColor),
-                      ),
-                    ],
+                        Text(
+                          'Remember me',
+                          style: Styles.textStyle14.copyWith(
+                              fontWeight: FontWeight.normal,
+                              color: kSecondaryColor),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 24),
                   Text(
                     "Password",
                     style: Styles.textStyle16
@@ -179,6 +181,7 @@ class _LoginState extends State<Login> {
                     },
                   ),
                   Align(
+                    heightFactor: 0.4,
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
@@ -187,11 +190,11 @@ class _LoginState extends State<Login> {
                       child: Text(
                         "Forgot Password?",
                         style:
-                            Styles.textStyle16.copyWith(color: kPrimaryColor),
+                            Styles.textStyle14.copyWith(color: kPrimaryColor),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 40),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 64),
@@ -240,7 +243,7 @@ class _LoginState extends State<Login> {
   void login() async {
     var authProvider =
         Provider.of<AuthenticationProvider>(context, listen: false);
-    if (!(formKey.currentState!.validate())) {
+    if (!(formKey1.currentState!.validate())) {
       return;
     }
     try {
@@ -270,6 +273,12 @@ class _LoginState extends State<Login> {
             'Wrong email or password',
             posActionTitle: 'Try Again',
           );
+        } else if (e.code == 'invalid-credential') {
+          DialogUtils.showMessage(
+            context,
+            'Wrong email or password',
+            posActionTitle: 'Try Again',
+          );
         } else {
           DialogUtils.showMessage(
             context,
@@ -277,7 +286,8 @@ class _LoginState extends State<Login> {
             posActionTitle: 'Try Again',
           );
         }
-        return; // Return early if login fails
+
+        return;
       }
 
       if (credential != null) {
@@ -312,10 +322,29 @@ class _LoginState extends State<Login> {
     }
   }
 
+  // shared preferences
+  // void keepUserLoggedIn(String userId) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   prefs.setBool(kKeepMeLoggedIn, keepMeLoggedIn);
+  //   prefs.setString(kUserLoggedInId, userId); // Save the user ID
+  // }
+
+  // // FlutterSecureStorage
+  // void keepUserLoggedIn(String userId) async {
+  //   final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  //   await secureStorage.write(
+  //       key: kKeepMeLoggedIn, value: 'true'); // Store 'true' for Remember Me
+  //   await secureStorage.write(key: kUserLoggedInId, value: userId);
+  // }
+  //
+  // Future<void> clearUserLoginData() async {
+  //   final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  //   await secureStorage.delete(key: kKeepMeLoggedIn);
+  //   await secureStorage.delete(key: kUserLoggedInId);
+  // }
   void keepUserLoggedIn(String userId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool(kKeepMeLoggedIn, keepMeLoggedIn);
-    prefs.setString(kUserLoggedInId, userId); // Save the user ID
+    await Provider.of<AuthenticationProvider>(context, listen: false)
+        .keepUserLoggedIn(userId, keepMeLoggedIn);
   }
 
   void selectImage() async {

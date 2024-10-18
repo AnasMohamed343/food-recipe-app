@@ -81,9 +81,8 @@ class _SignupState extends State<Signup> {
                               ),
                             ),
                       Positioned(
-                        top:
-                            0.h, // Make sure this value doesn't push it too far
-                        right: 130.w, // Adjust the positioning appropriately
+                        top: 0.h,
+                        right: 130.w,
                         child: CircleAvatar(
                           radius: 14.r,
                           backgroundColor: Colors.black38,
@@ -189,7 +188,6 @@ class _SignupState extends State<Signup> {
                             isPassword: true,
                             validator: (input) {
                               if (input == null || input.trim().isEmpty) {
-                                //must make this condition(input == null) first because, the object(input) is nullable
                                 return 'Plz,,, Enter password';
                               }
                               if (input != passwordController.text) {

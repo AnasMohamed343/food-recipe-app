@@ -167,6 +167,7 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
                     hintText: "Name",
                     controller: nameController,
                     keyboardType: TextInputType.text,
+                    suffixIcon: const Icon(Icons.edit),
                     validator: (input) {
                       if (input != null && input.trim().isNotEmpty) {
                         if (input.length < 6) {
@@ -187,6 +188,7 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     readOnly: true,
+                    suffixIcon: const Icon(Icons.lock),
                     // validator: (input) {
                     //   if (input == null || input.trim().isEmpty) {
                     //     //must make this condition(input == null) first because, the object(input) is nullable
@@ -252,7 +254,7 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
                                   return 'Error, password must be at least 6 chars';
                                 }
                               }
-                              return null; // by default returns null
+                              return null;
                             },
                           ),
                         ],
@@ -303,26 +305,14 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
           ),
         ),
       );
-      // if (_image == null) {
-      //   Navigator.pop(context); // Close the dialog
-      //   Fluttertoast.showToast(
-      //     msg: "Please select an image",
-      //     toastLength: Toast.LENGTH_SHORT,
-      //     gravity: ToastGravity.CENTER,
-      //     timeInSecForIosWeb: 1,
-      //     backgroundColor: Colors.red,
-      //     textColor: Colors.white,
-      //     fontSize: 16.0,
-      //   );
-      //   return;
-      // }
+
       await authProvider.updateUserProfile(
           email: emailController.text,
           currentPassword: currentPasswordController.text,
           name: nameController.text,
           password: newPasswordController.text);
       if (!mounted) return;
-      Navigator.pop(context); // Close the dialog
+      Navigator.pop(context);
       Fluttertoast.showToast(
         msg: "Profile Updated Successfully",
         toastLength: Toast.LENGTH_SHORT,
@@ -341,7 +331,7 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
       );
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context); // Close the dialog
+      Navigator.pop(context);
       if (e.code == FirebaseErrorCodes.weakPassword) {
         DialogUtils.showMessage(context, 'The password provided is too weak.',
             posActionTitle: 'Try Again');
@@ -351,7 +341,7 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
             posActionTitle: 'Try Again');
       }
     } catch (e) {
-      Navigator.pop(context); // Close the dialog
+      Navigator.pop(context);
       DialogUtils.showMessage(context, e.toString(),
           posActionTitle: 'Try Again');
     }
@@ -375,10 +365,8 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
       // Update profile image in AuthenticationProvider
       await authProvider.updateProfileImage(img);
 
-      // Hide loading indicator
       Navigator.pop(context);
 
-      // Show success Fluttertoast message
       Fluttertoast.showToast(
         msg: "Profile image updated successfully",
         toastLength: Toast.LENGTH_SHORT,
@@ -389,10 +377,8 @@ class _UpdateProfileDetailsState extends State<UpdateProfileDetails> {
         fontSize: 16.0,
       );
     } catch (e) {
-      // Hide loading indicator
       Navigator.pop(context);
 
-      // Show error dialog
       DialogUtils.showMessage(context, e.toString(),
           posActionTitle: 'try again');
     }
